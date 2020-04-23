@@ -1,7 +1,9 @@
 import { Router } from 'express'
-import { parseISO, startOfHour } from 'date-fns'
+import { parseISO } from 'date-fns'
 
 import AppointmentsRepository from '../repositories/AppointmentsRepository'
+
+import CreateAppointmentService from '../services/CreateAppointmentService'
 
 const router = Router()
 
@@ -16,24 +18,20 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   const { provider, date } = req.body
 
-  const parsedDate = startOfHour(parseISO(date))
+  const parsedDate = parseISO(date)
 
-  const bookedAppointmentInSameDateExists = appointmentsRepository.findByDate(
-    parsedDate
-  )
+  const createAppointment = new CreateAppointmentService(appointmentsRepository)
 
-  if (bookedAppointmentInSameDateExists) {
-    return res
-      .status(400)
-      .json({ message: "There's another appointment booked at that time" })
+  try {
+    const appointment = createAppointment.execute({
+      provider,
+      date: parsedDate,
+    })
+
+    return res.json(appointment)
+  } catch (error) {
+    return res.status(400).json({ message: error.message })
   }
-
-  const appointment = appointmentsRepository.create({
-    provider,
-    date: parsedDate,
-  })
-
-  return res.json(appointment)
 })
 
 export default router
