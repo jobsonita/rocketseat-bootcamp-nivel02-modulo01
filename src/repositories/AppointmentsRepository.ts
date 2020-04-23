@@ -18,6 +18,10 @@ class AppointmentsRepository {
     this.appointments = []
   }
 
+  public all(): Appointment[] {
+    return this.appointments
+  }
+
   public create(data: AppointmentCreationData): Appointment {
     const appointment = new Appointment(data)
 
